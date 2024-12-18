@@ -87,79 +87,70 @@ P.S. You can delete this when you're done too. It's your config now! :)
 -- Set <space> as the leader key
 -- See `:help mapleader`
 --  NOTE: Must happen before plugins are loaded (otherwise wrong leader will be used)
-vim.g.mapleader = ' '
+vim.g.mapleader = ','
 vim.g.maplocalleader = ' '
 
 -- Set to true if you have a Nerd Font installed
-vim.g.have_nerd_font = false
+vim.g.have_nerd_font = true
 
 -- [[ Setting options ]]
 -- See `:help vim.opt`
 -- NOTE: You can change these options as you wish!
 --  For more options, you can see `:help option-list`
-
--- Make line numbers default
-vim.opt.number = true
--- You can also add relative line numbers, to help with jumping.
---  Experiment for yourself to see if you like it!
--- vim.opt.relativenumber = true
-
--- Enable mouse mode, can be useful for resizing splits for example!
-vim.opt.mouse = 'a'
-
--- Don't show the mode, since it's already in the status line
-vim.opt.showmode = false
-
--- Sync clipboard between OS and Neovim.
---  Remove this option if you want your OS clipboard to remain independent.
---  See `:help 'clipboard'`
-vim.opt.clipboard = 'unnamedplus'
-
--- Enable break indent
-vim.opt.breakindent = true
-
--- Save undo history
-vim.opt.undofile = true
-
--- Case-insensitive searching UNLESS \C or one or more capital letters in the search term
+--
+-- Do not wrap lines
+vim.opt.wrap = false
+-- Tabs and indent
+vim.opt.softtabstop = 2
+vim.opt.shiftwidth = 2
+vim.opt.expandtab = true
+vim.opt.autoindent = true
+-- Line numbers
+vim.opt.nu = true
+vim.opt.rnu = true
+-- Splits
+vim.opt.splitbelow = true
+vim.opt.splitright = true
+-- Search
 vim.opt.ignorecase = true
 vim.opt.smartcase = true
-
+vim.opt.hlsearch = false
+vim.opt.incsearch = true
+-- No Swapfile & Backup
+vim.opt.swapfile = false
+vim.opt.backup = false
+-- Misc
+vim.opt.concealcursor = 'nc'
+vim.opt.errorbells = false
+vim.opt.undofile = true
+vim.opt.secure = true
+vim.opt.scrolloff = 10
+vim.opt.laststatus = 3
+vim.opt.list = true
+vim.opt.listchars = { tab = '→ ', trail = '·', nbsp = '␣', eol = '↲' }
+vim.opt.cursorline = true
 -- Keep signcolumn on by default
 vim.opt.signcolumn = 'yes'
-
--- Decrease update time
 vim.opt.updatetime = 250
-
--- Decrease mapped sequence wait time
--- Displays which-key popup sooner
 vim.opt.timeoutlen = 300
-
--- Configure how new splits should be opened
-vim.opt.splitright = true
-vim.opt.splitbelow = true
-
--- Sets how neovim will display certain whitespace characters in the editor.
---  See `:help 'list'`
---  and `:help 'listchars'`
-vim.opt.list = true
-vim.opt.listchars = { tab = '» ', trail = '·', nbsp = '␣' }
-
+-- Vertical line for file width
+vim.opt.colorcolumn = '80'
 -- Preview substitutions live, as you type!
-vim.opt.inccommand = 'split'
-
--- Show which line your cursor is on
-vim.opt.cursorline = true
-
--- Minimal number of screen lines to keep above and below the cursor.
-vim.opt.scrolloff = 10
+vim.opt.inccommand = 'nosplit'
+-- Enable mouse mode, can be useful for resizing splits for example!
+vim.opt.mouse = 'a'
+-- Don't show the mode, since it's already in the status line
+vim.opt.showmode = false
 
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
--- Set highlight on search, but clear on pressing <Esc> in normal mode
-vim.opt.hlsearch = true
-vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('v', '>', '>gv', { desc = 'Indent Right' })
+vim.keymap.set('v', '<', '<gv', { desc = 'Indent Left' })
+vim.keymap.set('v', 'Y', '"+y', { desc = 'Copy to system clipboard' })
+
+-- Open Oil with '-'
+vim.keymap.set('n', '-', vim.cmd.Oil, { desc = 'Open Oil' })
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Go to previous [D]iagnostic message' })
@@ -224,30 +215,79 @@ vim.opt.rtp:prepend(lazypath)
 --    :Lazy update
 --
 -- NOTE: Here is where you install your plugins.
+-- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+-- NOTE: Plugins can also be added by using a table,
+-- with the first argument being the link and the following
+-- keys can be used to configure plugin behavior/loading/etc.
+--
+-- Use `opts = {}` to force a plugin to be loaded.
+-- NOTE: Plugins can also be configured to run Lua code when they are loaded.
+--
+-- This is often very useful to both group configuration, as well as handle
+-- lazy loading plugins that don't need to be loaded immediately at startup.
+-- We use the `config` key, the configuration only runs
+-- after the plugin has been loaded:
+--  config = function() ... end
+
 require('lazy').setup({
-  -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
+  { 'stevearc/oil.nvim', opts = {} }, -- The best file explorer. Edit file tree in a neovim buffer
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-
-  -- NOTE: Plugins can also be added by using a table,
-  -- with the first argument being the link and the following
-  -- keys can be used to configure plugin behavior/loading/etc.
-  --
-  -- Use `opts = {}` to force a plugin to be loaded.
-  --
-  --  This is equivalent to:
-  --    require('Comment').setup({})
-
-  -- "gc" to comment visual regions/lines
+  {
+    'MeanderingProgrammer/markdown.nvim',
+    main = 'render-markdown',
+    opts = {
+      file_types = { 'markdown', 'copilot-chat' },
+    },
+    name = 'render-markdown',
+  },
+  {
+    'tadmccorkle/markdown.nvim',
+    ft = 'markdown', -- or 'event = "VeryLazy"'
+    opts = {
+      -- configuration here or empty for defaults
+    },
+  },
+  {
+    'theprimeagen/harpoon',
+    branch = 'harpoon2',
+    config = function()
+      local harpoon = require 'harpoon'
+      harpoon:setup()
+      harpoon:list():add()
+      vim.keymap.set('n', '<leader>a', function()
+        harpoon:list():add()
+      end)
+      vim.keymap.set('n', '<C-e>', function()
+        harpoon.ui:toggle_quick_menu(harpoon:list())
+      end)
+      vim.keymap.set('n', '<C-h>', function()
+        harpoon:list():select(1)
+      end)
+      vim.keymap.set('n', '<C-j>', function()
+        harpoon:list():select(2)
+      end)
+      vim.keymap.set('n', '<C-k>', function()
+        harpoon:list():select(3)
+      end)
+      vim.keymap.set('n', '<C-l>', function()
+        harpoon:list():select(4)
+      end)
+    end,
+  },
+  -- {
+  --   'mbbill/undotree',
+  --   config=function ()
+  --     vim.keymap.set('n', '', rhs, opts?)
+  --   end
+  -- },
   { 'numToStr/Comment.nvim', opts = {} },
 
-  -- Here is a more advanced example where we pass configuration
-  -- options to `gitsigns.nvim`. This is equivalent to the following Lua:
-  --    require('gitsigns').setup({ ... })
-  --
-  -- See `:help gitsigns` to understand what the configuration keys do
-  { -- Adds git related signs to the gutter, as well as utilities for managing changes
+  -- Git configurations
+  -- Adds git related signs to the gutter, as well as utilities for managing changes
+  {
     'lewis6991/gitsigns.nvim',
     opts = {
+      current_line_blame = true,
       signs = {
         add = { text = '+' },
         change = { text = '~' },
@@ -257,36 +297,55 @@ require('lazy').setup({
       },
     },
   },
+  {
+    'NeogitOrg/neogit',
+    dependencies = {
+      'sindrets/diffview.nvim',
+    },
+    branch = 'master',
+    opts = {
+      disable_hint = true,
+      kind = 'vsplit',
+      signs = {
+        -- { CLOSED, OPENED }
+        hunk = { '', '' },
+        item = { '▷', '▽' },
+        section = { '▷', '▽' },
+      },
+      integrations = {
+        telescope = false,
+        diffview = true,
+      },
+    },
+  },
 
-  -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
-  --
-  -- This is often very useful to both group configuration, as well as handle
-  -- lazy loading plugins that don't need to be loaded immediately at startup.
-  --
-  -- For example, in the following configuration, we use:
-  --  event = 'VimEnter'
-  --
-  -- which loads which-key before all the UI elements are loaded. Events can be
-  -- normal autocommands events (`:help autocmd-events`).
-  --
-  -- Then, because we use the `config` key, the configuration only runs
-  -- after the plugin has been loaded:
-  --  config = function() ... end
-
-  { -- Useful plugin to show you pending keybinds.
+  -- Useful plugin to show you pending keybinds.
+  {
     'folke/which-key.nvim',
     event = 'VimEnter', -- Sets the loading event to 'VimEnter'
     config = function() -- This is the function that runs, AFTER loading
       require('which-key').setup()
 
       -- Document existing key chains
-      require('which-key').register {
-        ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
-        ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
-        ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
-        ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
-        ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+      require('which-key').add {
+        { '<leader>c', group = '[C]ode' },
+        { '<leader>c_', hidden = true },
+        { '<leader>d', group = '[D]ocument' },
+        { '<leader>d_', hidden = true },
+        { '<leader>r', group = '[R]ename' },
+        { '<leader>r_', hidden = true },
+        { '<leader>s', group = '[S]earch' },
+        { '<leader>s_', hidden = true },
+        { '<leader>w', group = '[W]orkspace' },
+        { '<leader>w_', hidden = true },
       }
+      -- require('which-key').register {
+      --   ['<leader>c'] = { name = '[C]ode', _ = 'which_key_ignore' },
+      --   ['<leader>d'] = { name = '[D]ocument', _ = 'which_key_ignore' },
+      --   ['<leader>r'] = { name = '[R]ename', _ = 'which_key_ignore' },
+      --   ['<leader>s'] = { name = '[S]earch', _ = 'which_key_ignore' },
+      --   ['<leader>w'] = { name = '[W]orkspace', _ = 'which_key_ignore' },
+      -- }
     end,
   },
 
@@ -551,6 +610,10 @@ require('lazy').setup({
         -- tsserver = {},
         --
 
+        elixirls = {},
+        svelte = {},
+        terraformls = {},
+        ts_ls = {},
         lua_ls = {
           -- cmd = {...},
           -- filetypes = { ...},
@@ -565,6 +628,32 @@ require('lazy').setup({
             },
           },
         },
+        gopls = {
+          settings = {
+            gopls = {
+              analyses = {
+                unusedparams = true,
+              },
+              completeUnimported = true,
+              usePlaceholders = true,
+              staticcheck = true,
+            },
+          },
+        },
+        pyright = {
+          settings = {
+            pyright = {
+              disableOrganizeImports = true,
+            },
+            -- python = {
+            --   analysis = {
+            --     ignore = { '*' },
+            --   },
+            -- },
+          },
+        },
+        -- ruff = {},
+        ruff_lsp = {},
       }
 
       -- Ensure the servers and tools above are installed
@@ -591,11 +680,37 @@ require('lazy').setup({
             -- by the server configuration above. Useful when disabling
             -- certain features of an LSP (for example, turning off formatting for tsserver)
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
+            if server_name == 'pyright' then
+              server.capabilities.textDocument.publishDiagnostics.tagSupport.valueSet = { 2 }
+            end
             require('lspconfig')[server_name].setup(server)
           end,
         },
       }
+      require('lspconfig').gleam.setup {
+        cmd = { 'gleam', 'lsp' },
+      }
     end,
+  },
+
+  -- AI plugins
+  {
+    'CopilotC-Nvim/CopilotChat.nvim',
+    branch = 'canary',
+    dependencies = {
+      { 'github/copilot.vim' },
+      { 'nvim-lua/plenary.nvim' },
+    },
+    build = 'make tiktoken',
+    opts = {
+      model = 'claude-3.5-sonnet',
+      question_header = '## Me ',
+      auto_follow_cursor = false,
+      auto_insert_mode = true,
+      window = {
+        width = 0.3,
+      },
+    },
   },
 
   { -- Autoformat
@@ -626,7 +741,11 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
+        python = { 'ruff_fix', 'ruff_format' },
+        javascript = { 'prettierd' },
+        typescript = { 'prettierd' },
+        hcl = { 'hcl' },
+        terraform = { 'hcl' },
         --
         -- You can use a sub-list to tell conform to run *until* a formatter
         -- is found.
@@ -651,17 +770,6 @@ require('lazy').setup({
           end
           return 'make install_jsregexp'
         end)(),
-        dependencies = {
-          -- `friendly-snippets` contains a variety of premade snippets.
-          --    See the README about individual language/framework/plugin snippets:
-          --    https://github.com/rafamadriz/friendly-snippets
-          -- {
-          --   'rafamadriz/friendly-snippets',
-          --   config = function()
-          --     require('luasnip.loaders.from_vscode').lazy_load()
-          --   end,
-          -- },
-        },
       },
       'saadparwaiz1/cmp_luasnip',
 
@@ -670,12 +778,17 @@ require('lazy').setup({
       --  into multiple repos for maintenance purposes.
       'hrsh7th/cmp-nvim-lsp',
       'hrsh7th/cmp-path',
+      'hrsh7th/cmp-cmdline',
     },
     config = function()
       -- See `:help cmp`
       local cmp = require 'cmp'
       local luasnip = require 'luasnip'
       luasnip.config.setup {}
+
+      luasnip.add_snippets('all', {
+        luasnip.parser.parse_snippet('rup', '₹'),
+      })
 
       cmp.setup {
         snippet = {
@@ -737,6 +850,24 @@ require('lazy').setup({
           { name = 'path' },
         },
       }
+
+      -- Completion in cmdline for search in buffer
+      cmp.setup.cmdline('/', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = {
+          { name = 'buffer' },
+        },
+      })
+
+      -- Completion in cmdline for commands
+      cmp.setup.cmdline(':', {
+        mapping = cmp.mapping.preset.cmdline(),
+        sources = cmp.config.sources({
+          { name = 'path' },
+        }, {
+          { name = 'cmdline' },
+        }),
+      })
     end,
   },
 
@@ -779,6 +910,20 @@ require('lazy').setup({
       -- - sr)'  - [S]urround [R]eplace [)] [']
       require('mini.surround').setup()
 
+      -- Move selection around in any direction
+      -- - <M-h> -> left
+      -- - <M-j> -> down
+      -- - <M-k> -> up
+      -- - <M-l> -> right
+      require('mini.move').setup()
+
+      -- Auto pairs
+      require('mini.pairs').setup()
+
+      -- Split to different lines or join args
+      -- - gS to toggle between split and joined
+      require('mini.splitjoin').setup()
+
       -- Simple and easy statusline.
       --  You could remove this setup call if you don't like it,
       --  and try some other statusline plugin
@@ -802,7 +947,7 @@ require('lazy').setup({
     'nvim-treesitter/nvim-treesitter',
     build = ':TSUpdate',
     opts = {
-      ensure_installed = { 'bash', 'c', 'html', 'lua', 'luadoc', 'markdown', 'vim', 'vimdoc' },
+      ensure_installed = { 'bash', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'vim', 'vimdoc', 'go', 'javascript', 'typescript', 'dart', 'python' },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -838,9 +983,10 @@ require('lazy').setup({
   --  Here are some example plugins that I've included in the Kickstart repository.
   --  Uncomment any of the lines below to enable them (you will need to restart nvim).
   --
-  -- require 'kickstart.plugins.debug',
+  require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',
   -- require 'kickstart.plugins.lint',
+  require 'kickstart.plugins.test',
 
   -- NOTE: The import below can automatically add your own plugins, configuration, etc from `lua/custom/plugins/*.lua`
   --    This is the easiest way to modularize your config.
